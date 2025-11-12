@@ -125,17 +125,19 @@ def get_results(job_id):
     try:
         df = pd.read_csv(output_file)
         # Replace NaN with None for proper JSON serialization
-        df = df.where(pd.notnull(df), None)
+        df = df.fillna('')  # Replace NaN with empty string for JSON compatibility
         results = df.to_dict(orient='records')
         
-        # Ensure NaN values are properly converted to None
-        import json
-        results_json = json.loads(json.dumps(results, default=str))
+        # Convert empty strings back to None for cleaner JSON
+        for result in results:
+            for key, value in result.items():
+                if value == '':
+                    result[key] = None
         
         return jsonify({
             "job_id": job_id,
-            "count": len(results_json),
-            "data": results_json
+            "count": len(results),
+            "data": results
         })
     except Exception as e:
         return jsonify({"error": f"Failed to read results: {str(e)}"}), 500
