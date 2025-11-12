@@ -127,10 +127,15 @@ def get_results(job_id):
         # Replace NaN with None for proper JSON serialization
         df = df.where(pd.notnull(df), None)
         results = df.to_dict(orient='records')
+        
+        # Ensure NaN values are properly converted to None
+        import json
+        results_json = json.loads(json.dumps(results, default=str))
+        
         return jsonify({
             "job_id": job_id,
-            "count": len(results),
-            "data": results
+            "count": len(results_json),
+            "data": results_json
         })
     except Exception as e:
         return jsonify({"error": f"Failed to read results: {str(e)}"}), 500
